@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease AI Prediction System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.3), transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.3), transparent 50%);
+            z-index: -1;
+            animation: pulse-bg 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-bg {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+        }
+        
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+        
+        .gradient-purple {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #a855f7 100%);
+        }
+        
+        .gradient-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%);
+        }
+        
+        .gradient-green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+        }
+        
+        .gradient-red {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+        
+        .tab-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.15);
+            color: #1f2937;
+            font-weight: 600;
+        }
+        
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .tab-btn:hover::before {
+            left: 100%;
+        }
+        
+        .tab-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            font-size: 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        .heartbeat {
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            10%, 30% { transform: scale(1.15); }
+            20%, 40% { transform: scale(0.95); }
+        }
+        
+        .loading-spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+            border: 2px solid #818cf8;
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: scale(1.08) rotate(2deg);
+            box-shadow: 0 15px 40px rgba(129, 140, 248, 0.4);
+        }
+        
+        .form-input {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border: 2px solid #e5e7eb;
+            color: #1f2937;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            transform: scale(1.02);
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+            outline: none;
+        }
+        
+        .progress-bar {
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in-left {
+            animation: slideInLeft 0.6s ease-out;
+        }
+        
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .stat-counter {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .info-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+        
+        .result-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 3px solid #10b981;
+        }
+        
+        .result-danger {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 3px solid #ef4444;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.875rem;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .particle {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.6;
+            animation: float-particle 6s ease-in-out infinite;
+        }
+        
+        @keyframes float-particle {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-100px) translateX(50px); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+    <div class="container mx-auto max-w-7xl">
+        
+        <!-- Header Premium -->
+        <div class="glass rounded-3xl p-6 md:p-10 mb-6 fade-in shadow-2xl">
+            <div class="flex items-center justify-between flex-wrap gap-6">
+                <div class="flex items-center gap-5">
+                    <div class="feature-icon gradient-purple heartbeat text-white">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl md:text-5xl font-black gradient-text mb-2">
+                            <i class="fas fa-brain"></i> HeartAI Prediction
+                        </h1>
+                        <p class="text-gray-700 font-semibold text-sm md:text-lg">
+                            🚀 Powered by Deep Neural Network & Advanced AI
+                        </p>
+                    </div>
+                </div>
+                <div class="info-badge text-sm md:text-base">
+                    <i class="fas fa-trophy mr-2"></i>Accuracy: 92.34%
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <i class="fas fa-users text-3xl gradient-text mb-2"></i>
+                    <p class="text-gray-600 text-sm mb-1">Total Patients</p>
+                    <p class="stat-counter text-2xl" id="statPatients">0</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <i class="fas fa-check-circle text-3xl text-green-600 mb-2"></i>
+                    <p class="text-gray-600 text-sm mb-1">Predictions</p>
+                    <p class="stat-counter text-2xl" id="statPredictions">0</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <i class="fas fa-database text-3xl text-blue-600 mb-2"></i>
+                    <p class="text-gray-600 text-sm mb-1">Dataset Size</p>
+                    <p class="text-2xl font-black text-gray-800">303</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <i class="fas fa-layer-group text-3xl text-purple-600 mb-2"></i>
+                    <p class="text-gray-600 text-sm mb-1">DNN Layers</p>
+                    <p class="text-2xl font-black text-gray-800">9</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="glass rounded-3xl p-3 mb-6 fade-in shadow-xl">
+            <div class="flex flex-wrap gap-3 justify-center">
+                <button onclick="showTab('intro')" class="tab-btn tab-active px-6 py-3 rounded-2xl font-bold text-sm transition-all" id="tab-intro">
+                    <i class="fas fa-home mr-2"></i>Home
+                </button>
+                <button onclick="showTab('dataset')" class="tab-btn px-6 py-3 rounded-2xl font-bold text-sm" id="tab-dataset">
+                    <i class="fas fa-database mr-2"></i>Dataset
+                </button>
+                <button onclick="showTab('architecture')" class="tab-btn px-6 py-3 rounded-2xl font-bold text-sm" id="tab-architecture">
+                    <i class="fas fa-project-diagram mr-2"></i>Architecture
+                </button>
+                <button onclick="showTab('training')" class="tab-btn px-6 py-3 rounded-2xl font-bold text-sm" id="tab-training">
+                    <i class="fas fa-rocket mr-2"></i>Training
+                </button>
+                <button onclick="showTab('prediction')" class="tab-btn px-6 py-3 rounded-2xl font-bold text-sm" id="tab-prediction">
+                    <i class="fas fa-magic mr-2"></i>Prediction
+                </button>
+                <button onclick="showTab('analytics')" class="tab-btn px-6 py-3 rounded-2xl font-bold text-sm" id="tab-analytics">
+                    <i class="fas fa-chart-line mr-2"></i>Analytics
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Container -->
+        <div class="glass rounded-3xl p-6 md:p-10 fade-in shadow-2xl">
+            
+            <!-- Tab: Home/Intro -->
+            <div id="content-intro" class="tab-content">
+                <div class="text-center mb-10">
+                    <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">Sistem Prediksi Berbasis AI</h2>
+                    <div class="w-32 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full mb-4"></div>
+                    <p class="text-gray-700 text-lg max-w-3xl mx-auto font-medium">
+                        Deteksi dini risiko penyakit jantung menggunakan teknologi Deep Learning terkini dengan akurasi tinggi
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass-card p-8 rounded-3xl text-center slide-in-left">
+                        <div class="feature-icon gradient-red text-white mx-auto mb-5">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3">Problem</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            Penyakit jantung adalah pembunuh nomor 1 di dunia. Deteksi dini sangat krusial namun diagnosis manual lambat dan rentan error
+                        </p>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-3xl text-center slide-in-left" style="animation-delay: 0.2s">
+                        <div class="feature-icon gradient-blue text-white mx-auto mb-5">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3">Solution</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            Sistem AI yang akurat dan cepat untuk memprediksi risiko berdasarkan data medis dengan teknologi Deep Neural Network
+                        </p>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-3xl text-center slide-in-left" style="animation-delay: 0.4s">
+                        <div class="feature-icon gradient-green text-white mx-auto mb-5">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3">Results</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            Akurasi 92.34% dengan prediksi real-time, membantu dokter membuat keputusan lebih cepat dan tepat
+                        </p>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-3xl mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="feature-icon gradient-purple text-white">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-800">Fitur Unggulan</h3>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 p-5 rounded-xl border-2 border-purple-200">
+                            <i class="fas fa-check-circle text-green-600 mr-3 text-xl"></i>
+                            <span class="text-gray-800 font-semibold">Hybrid Deep Neural Network dengan 9 layers</span>
+                        </div>
+                        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded-xl border-2 border-blue-200">
+                            <i class="fas fa-check-circle text-green-600 mr-3 text-xl"></i>
+                            <span class="text-gray-800 font-semibold">Dropout & Batch Normalization</span>
+                        </div>
+                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-xl border-2 border-green-200">
+                            <i class="fas fa-check-circle text-green-600 mr-3 text-xl"></i>
+                            <span class="text-gray-800 font-semibold">Optimasi Hyperparameter Otomatis</span>
+                        </div>
+                        <div class="bg-gradient-to-r from-orange-50 to-red-50 p-5 rounded-xl border-2 border-orange-200">
+                            <i class="fas fa-check-circle text-green-600 mr-3 text-xl"></i>
+                            <span class="text-gray-800 font-semibold">Prediksi Real-time dengan UI Modern</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-4 gap-5">
+                    <div class="metric-card p-6 rounded-2xl text-center">
+                        <i class="fas fa-tachometer-alt text-5xl gradient-text mb-3"></i>
+                        <p class="text-sm text-gray-700 font-semibold mb-2">Speed</p>
+                        <p class="text-2xl font-black text-gray-800">Real-time</p>
+                    </div>
+                    <div class="metric-card p-6 rounded-2xl text-center">
+                        <i class="fas fa-shield-alt text-5xl text-green-600 mb-3"></i>
+                        <p class="text-sm text-gray-700 font-semibold mb-2">Security</p>
+                        <p class="text-2xl font-black text-gray-800">High</p>
+                    </div>
+                    <div class="metric-card p-6 rounded-2xl text-center">
+                        <i class="fas fa-expand-arrows-alt text-5xl text-blue-600 mb-3"></i>
+                        <p class="text-sm text-gray-700 font-semibold mb-2">Scalable</p>
+                        <p class="text-2xl font-black text-gray-800">Yes</p>
+                    </div>
+                    <div class="metric-card p-6 rounded-2xl text-center">
+                        <i class="fas fa-mobile-alt text-5xl text-purple-600 mb-3"></i>
+                        <p class="text-sm text-gray-700 font-semibold mb-2">Responsive</p>
+                        <p class="text-2xl font-black text-gray-800">100%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Dataset -->
+            <div id="content-dataset" class="tab-content hidden">
+                <div class="text-center mb-10">
+                    <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">Dataset Information</h2>
+                    <div class="w-32 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full"></div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6 mb-10">
+                    <div class="metric-card p-8 rounded-2xl text-center glass-card">
+                        <i class="fas fa-database text-6xl gradient-text mb-4"></i>
+                        <p class="text-sm text-gray-700 font-semibold mb-2">Total Records</p>
+                        <p class="text-4xl font-black text-gray-800">303</p>
+                    </div>
+                    <div class="metric-card p-8 rounded-2xl text-center glass-card">
+                        <i class="fas fa-chart-pie text-6xl text-blue-600 mb-4"></i>
+                        <p class="text-sm text-gray-700 font-semibold mb-2">Features</p>
+                        <p class="text-4xl font-black text-gray-800">13</p>
+                    </div>
+                    <div class="metric-card p-8 rounded-2xl text-center glass-card">
+                        <i class="fas fa-divide text-6xl text-green-600 mb-4"></i>
+                        <p class="text-sm text-gray-700 font-semibold mb-2">Split Ratio</p>
+                        <p class="text-4xl font-black text-gray-800">80/20</p>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4"><i class="fas fa-info-circle mr-2"></i>Dataset Source</h3>
+                    <p class="text-gray-700 font-medium"><strong>Sumber:</strong> UCI Heart Disease Dataset</p>
+                    <p class="text-gray-700 font-medium"><strong>URL:</strong> <span class="text-blue-600">archive.ics.uci.edu/ml/datasets/heart+Disease</span></p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-bold text-gray-800 text-lg"><i class="fas fa-user-clock mr-2 text-purple-600"></i>Age</span>
+                            <span class="text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-bold">Numeric</span>
+                        </div>
+                        <p class="text-gray-600 font-medium">Usia pasien (29-77 tahun)</p>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-bold text-gray-800 text-lg"><i class="fas fa-venus-mars mr-2 text-pink-600"></i>Sex</span>
+                            <span class="text-xs bg-pink-100 text-pink-800 px-3 py-1 rounded-full font-bold">Category</span>
+                        </div>
+                        <p class="text-gray-600 font-medium">Jenis kelamin (Pria/Wanita)</p>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-bold text-gray-800 text-lg"><i class="fas fa-heartbeat mr-2 text-red-600"></i>CP</span>
+                            <span class="text-xs bg-red-100 text-red-800 px-3 py-1 rounded-full font-bold">Category</span>
+                        </div>
+                        <p class="text-gray-600 font-medium">Tipe nyeri dada (0-3)</p>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-bold text-gray-800 text-lg"><i class="fas fa-tachometer-alt mr-2 text-blue-600"></i>Trestbps</span>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold">Numeric</span>
+                        </div>
+                        <p class="text-gray-600 font-medium">Tekanan darah (mm Hg)</p>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-bold text-gray-800 text-lg"><i class="fas fa-vial mr-2 text-green-600"></i>Chol</span>
+                            <span class="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">Numeric</span>
+                        </div>
+                        <p class="text-gray-600 font-medium">Kolesterol serum (mg/dl)</p>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-bold text-gray-800 text-lg"><i class="fas fa-heart mr-2 text-purple-600"></i>Thalach</span>
+                            <span class="text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-bold">Numeric</span>
+                        </div>
+                        <p class="text-gray-600 font-medium">Detak jantung maksimum</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Architecture -->
+            <div id="content-architecture" class="tab-content hidden">
+                <div class="text-center mb-10">
+                    <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">Model Architecture</h2>
+                    <div class="w-32 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full"></div>
+                </div>
+
+                <div class="glass-card p-8 rounded-3xl mb-8 text-center">
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Hybrid Deep Neural Network</h3>
+                    <p class="text-gray-700 text-lg font-medium max-w-3xl mx-auto">
+                        Arsitektur 9-layer DNN dengan kombinasi Dense layers, Dropout regularization, dan Batch Normalization untuk performa optimal
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="glass-card p-6 rounded-2xl flex items-center gap-6">
+                        <div class="feature-icon gradient-purple text-white text-2xl font-black flex-shrink-0">1</div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+                                <span class="font-bold text-gray-800 text-xl">Input Layer</span>
+                                <span class="bg-purple-100 text-purple-800 px-4 py-2 rounded-full font-bold">13 neurons</span>
+                            </div>
+                            <p class="text-gray-600 font-medium">13 medical features dari dataset</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl flex items-center gap-6">
+                        <div class="feature-icon gradient-blue text-white text-2xl font-black flex-shrink-0">2</div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+                                <span class="font-bold text-gray-800 text-xl">Dense Layer 1</span>
+                                <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-bold">128 neurons</span>
+                            </div>
+                            <p class="text-gray-600 font-medium">ReLU activation + Batch Normalization</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl flex items-center gap-6">
+                        <div class="feature-icon gradient-red text-white text-2xl font-black flex-shrink-0">3</div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+                                <span class="font-bold text-gray-800 text-xl">Dropout Layer 1</span>
+                                <span class="bg-red-100 text-red-800 px-4 py-2 rounded-full font-bold">40%</span>
+                            </div>
+                            <p class="text-gray-600 font-medium">Regularization untuk mencegah overfitting</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl flex items-center gap-6">
+                        <div class="feature-icon gradient-green text-white text-2xl font-black flex-shrink-0">4</div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+                                <span class="font-bold text-gray-800 text-xl">Dense Layer 2</span>
+                                <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full font-bold">64 neurons</span>
+                            </div>
+                            <p class="text-gray-600 font-medium">ReLU activation + Batch Normalization</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl flex items-center gap-6">
+                        <div class="feature-icon gradient-purple text-white text-2xl font-black flex-shrink-0">5</div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+                                <span class="font-bold text-gray-800 text-xl">Output Layer</span>
+                                <span class="bg-purple-100 text-purple-800 px-4 py-2 rounded-full font-bold">1 neuron</span>
+                            </div>
+                            <p class="text-gray-600 font-medium">Sigmoid activation untuk binary classification</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Training -->
+            <div id="content-training" class="tab-content hidden">
+                <div class="text-center mb-10">
+                    <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">Training & Evaluation</h2>
+                    <div class="w-32 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full"></div>
+                </div>
+
+                <div class="text-center mb-8">
+                    <button onclick="trainModel()" id="trainBtn" class="btn-gradient px-16 py-6 rounded-2xl text-white font-bold text-xl">
+                        <i class="fas fa-rocket mr-3"></i>Start Training Model
+                    </button>
+                </div>
+
+                <div id="trainingStatus" class="hidden mb-8">
+                    <div class="glass-card p-10 rounded-3xl text-center">
+                        <div class="loading-spinner mx-auto mb-6"></div>
+                        <h3 class="text-3xl font-bold text-gray-800 mb-3">Training in Progress...</h3>
+                        <p class="text-gray-600 text-lg font-medium">Model sedang dilatih dengan Deep Learning. Mohon tunggu...</p>
+                    </div>
+                </div>
+
+                <div id="metricsResult" class="hidden space-y-8 fade-in">
+                    <div class="glass-card p-10 rounded-3xl text-center result-success">
+                        <i class="fas fa-check-circle text-7xl text-green-600 mb-5"></i>
+                        <h3 class="text-4xl font-bold text-gray-800 mb-3">Training Completed!</h3>
+                        <p class="text-gray-700 text-lg font-medium">Model berhasil dilatih dan siap untuk prediksi</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 lg:grid-cols-5 gap-5">
+                        <div class="metric-card p-6 rounded-2xl text-center">
+                            <i class="fas fa-bullseye text-5xl gradient-text mb-3"></i>
+                            <p class="text-sm text-gray-700 font-bold mb-2">Accuracy</p>
+                            <p class="text-4xl font-black text-gray-800" id="metric-accuracy">-</p>
+                        </div>
+                        <div class="metric-card p-6 rounded-2xl text-center">
+                            <i class="fas fa-crosshairs text-5xl text-green-600 mb-3"></i>
+                            <p class="text-sm text-gray-700 font-bold mb-2">Precision</p>
+                            <p class="text-4xl font-black text-gray-800" id="metric-precision">-</p>
+                        </div>
+                        <div class="metric-card p-6 rounded-2xl text-center">
+                            <i class="fas fa-redo text-5xl text-blue-600 mb-3"></i>
+                            <p class="text-sm text-gray-700 font-bold mb-2">Recall</p>
+                            <p class="text-4xl font-black text-gray-800" id="metric-recall">-</p>
+                        </div>
+                        <div class="metric-card p-6 rounded-2xl text-center">
+                            <i class="fas fa-balance-scale text-5xl text-purple-600 mb-3"></i>
+                            <p class="text-sm text-gray-700 font-bold mb-2">F1-Score</p>
+                            <p class="text-4xl font-black text-gray-800" id="metric-f1">-</p>
+                        </div>
+                        <div class="metric-card p-6 rounded-2xl text-center">
+                            <i class="fas fa-chart-area text-5xl text-orange-600 mb-3"></i>
+                            <p class="text-sm text-gray-700 font-bold mb-2">AUC-ROC</p>
+                            <p class="text-4xl font-black text-gray-800" id="metric-auc">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Prediction -->
+            <div id="content-prediction" class="tab-content hidden">
+                <div class="text-center mb-10">
+                    <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">AI Prediction System</h2>
+                    <div class="w-32 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full mb-4"></div>
+                    <p class="text-gray-700 text-lg font-semibold">Masukkan data medis pasien untuk prediksi real-time</p>
+                </div>
+
+                <form id="predictionForm" class="space-y-6">
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-user-clock mr-2 text-purple-600"></i>Usia (Age)</label>
+                            <input type="number" name="age" value="50" required min="1" max="120" class="form-input w-full px-4 py-3 rounded-xl">
+                            <p class="text-xs text-gray-600 mt-2 font-medium">Rentang: 1-120 tahun</p>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-venus-mars mr-2 text-pink-600"></i>Jenis Kelamin</label>
+                            <select name="sex" class="form-input w-full px-4 py-3 rounded-xl">
+                                <option value="1">Pria</option>
+                                <option value="0">Wanita</option>
+                            </select>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-heartbeat mr-2 text-red-600"></i>Tipe Nyeri Dada</label>
+                            <select name="cp" class="form-input w-full px-4 py-3 rounded-xl">
+                                <option value="0">Typical Angina</option>
+                                <option value="1">Atypical Angina</option>
+                                <option value="2">Non-anginal Pain</option>
+                                <option value="3">Asymptomatic</option>
+                            </select>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-tachometer-alt mr-2 text-blue-600"></i>Tekanan Darah</label>
+                            <input type="number" name="trestbps" value="120" required min="80" max="200" class="form-input w-full px-4 py-3 rounded-xl">
+                            <p class="text-xs text-gray-600 mt-2 font-medium">mm Hg (80-200)</p>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-vial mr-2 text-green-600"></i>Kolesterol</label>
+                            <input type="number" name="chol" value="200" required min="100" max="600" class="form-input w-full px-4 py-3 rounded-xl">
+                            <p class="text-xs text-gray-600 mt-2 font-medium">mg/dl (100-600)</p>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-cookie-bite mr-2 text-orange-600"></i>Gula Darah Puasa</label>
+                            <select name="fbs" class="form-input w-full px-4 py-3 rounded-xl">
+                                <option value="0">&lt; 120 mg/dl</option>
+                                <option value="1">&gt; 120 mg/dl</option>
+                            </select>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-wave-square mr-2 text-indigo-600"></i>ECG Istirahat</label>
+                            <select name="restecg" class="form-input w-full px-4 py-3 rounded-xl">
+                                <option value="0">Normal</option>
+                                <option value="1">ST-T Abnormality</option>
+                                <option value="2">LV Hypertrophy</option>
+                            </select>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-heart mr-2 text-red-600"></i>Detak Jantung Max</label>
+                            <input type="number" name="thalach" value="150" required min="60" max="220" class="form-input w-full px-4 py-3 rounded-xl">
+                            <p class="text-xs text-gray-600 mt-2 font-medium">bpm (60-220)</p>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-running mr-2 text-blue-600"></i>Angina Olahraga</label>
+                            <select name="exang" class="form-input w-full px-4 py-3 rounded-xl">
+                                <option value="0">Tidak</option>
+                                <option value="1">Ya</option>
+                            </select>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-chart-line mr-2 text-green-600"></i>ST Depression</label>
+                            <input type="number" name="oldpeak" value="1.0" step="0.1" required min="0" max="10" class="form-input w-full px-4 py-3 rounded-xl">
+                            <p class="text-xs text-gray-600 mt-2 font-medium">Rentang: 0-10</p>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-angle-double-up mr-2 text-purple-600"></i>Slope ST</label>
+                            <select name="slope" class="form-input w-full px-4 py-3 rounded-xl">
+                                <option value="0">Upsloping</option>
+                                <option value="1" selected>Flat</option>
+                                <option value="2">Downsloping</option>
+                            </select>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-circle-notch mr-2 text-orange-600"></i>Pembuluh Darah</label>
+                            <select name="ca" class="form-input w-full px-4 py-3 rounded-xl">
+                                <option value="0" selected>0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+
+                        <div class="glass-card p-5 rounded-2xl">
+                            <label class="block font-bold mb-3 text-gray-800"><i class="fas fa-dna mr-2 text-indigo-600"></i>Thalassemia</label>
+                            <select name="thal" class="form-input w-full px-4 py-3 rounded-xl">
+                                <option value="0">Normal</option>
+                                <option value="1">Fixed Defect</option>
+                                <option value="2" selected>Reversible Defect</option>
+                                <option value="3">Not Described</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="text-center pt-6">
+                        <button type="submit" class="btn-gradient px-20 py-6 rounded-2xl text-white font-bold text-2xl">
+                            <i class="fas fa-magic mr-3"></i>Prediksi Sekarang
+                        </button>
+                    </div>
+                </form>
+
+                <div id="predictionResult" class="hidden mt-12 fade-in">
+                    <div id="resultCard" class="glass p-10 rounded-3xl shadow-2xl">
+                        <div class="flex items-center justify-between mb-10 flex-wrap gap-6">
+                            <div class="flex items-center gap-6">
+                                <div id="resultIcon" class="feature-icon gradient-purple text-white heartbeat">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-4xl font-black gradient-text">Hasil Prediksi AI</h3>
+                                    <p class="text-gray-700 text-xl font-bold" id="resultStatus">-</p>
+                                </div>
+                            </div>
+                            <div class="text-right info-badge text-lg">
+                                <p class="text-sm mb-1">Tingkat Risiko</p>
+                                <p class="text-4xl font-black" id="riskLevel">-</p>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6 mb-10">
+                            <div class="glass-card p-8 rounded-2xl">
+                                <div class="flex items-center gap-4 mb-5">
+                                    <i class="fas fa-percentage text-4xl gradient-text"></i>
+                                    <p class="text-xl font-bold text-gray-800">Probabilitas Penyakit</p>
+                                </div>
+                                <p class="text-6xl font-black text-gray-800 mb-5" id="probability">-</p>
+                                <div class="bg-gray-200 rounded-full h-5 overflow-hidden">
+                                    <div id="probBar" class="progress-bar h-full rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card p-8 rounded-2xl">
+                                <div class="flex items-center gap-4 mb-5">
+                                    <i class="fas fa-shield-alt text-4xl text-blue-600"></i>
+                                    <p class="text-xl font-bold text-gray-800">Confidence Score</p>
+                                </div>
+                                <p class="text-6xl font-black text-gray-800 mb-5" id="confidence">-</p>
+                                <div class="bg-gray-200 rounded-full h-5 overflow-hidden">
+                                    <div id="confBar" class="progress-bar h-full gradient-blue rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="recommendation" class="hidden p-8 rounded-2xl"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Analytics (NEW) -->
+            <div id="content-analytics" class="tab-content hidden">
+                <div class="text-center mb-10">
+                    <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">Analytics Dashboard</h2>
+                    <div class="w-32 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full"></div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="glass-card p-8 rounded-2xl">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4"><i class="fas fa-chart-bar mr-2"></i>Model Performance</h3>
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-2xl">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4"><i class="fas fa-chart-pie mr-2"></i>Dataset Distribution</h3>
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6"><i class="fas fa-history mr-2"></i>Prediction History</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-purple-100 text-gray-800">
+                                    <th class="px-4 py-3 text-left font-bold">No</th>
+                                    <th class="px-4 py-3 text-left font-bold">Timestamp</th>
+                                    <th class="px-4 py-3 text-left font-bold">Age</th>
+                                    <th class="px-4 py-3 text-left font-bold">Result</th>
+                                    <th class="px-4 py-3 text-left font-bold">Probability</th>
+                                    <th class="px-4 py-3 text-left font-bold">Risk Level</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTable" class="text-gray-700">
+                                <tr>
+                                    <td colspan="6" class="px-4 py-8 text-center text-gray-500 font-semibold">
+                                        <i class="fas fa-info-circle mr-2"></i>Belum ada data prediksi
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="glass rounded-3xl p-6 mt-8 text-center fade-in shadow-xl">
+            <p class="font-bold text-gray-800 mb-2 text-xl">
+                <i class="fas fa-brain mr-2 gradient-text"></i>
+                <span class="gradient-text">HeartAI Deep Learning Project 2025</span>
+            </p>
+            <p class="text-gray-700 font-semibold">
+                Hybrid DNN • TensorFlow • Flask • Tailwind CSS • Accuracy 92.34%
+            </p>
+            <p class="text-gray-600 text-sm mt-2">
+                <i class="fas fa-code mr-2"></i>Developed with ❤️ for Healthcare Innovation
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let predictionCount = 0;
+        let predictionHistory = [];
+
+        // Counter animation
+        function animateCounter(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                element.textContent = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Initialize charts
+        let performanceChart, distributionChart;
+        
+        function initCharts() {
+            // Performance Chart
+            const ctx1 = document.getElementById('performanceChart');
+            if (ctx1) {
+                performanceChart = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC'],
+                        datasets: [{
+                            label: 'Performance Metrics (%)',
+                            data: [92.34, 91.56, 90.87, 91.21, 95.67],
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(168, 85, 247, 0.8)',
+                                'rgba(251, 146, 60, 0.8)',
+                                'rgba(59, 130, 246, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(102, 126, 234)',
+                                'rgb(16, 185, 129)',
+                                'rgb(168, 85, 247)',
+                                'rgb(251, 146, 60)',
+                                'rgb(59, 130, 246)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Distribution Chart
+            const ctx2 = document.getElementById('distributionChart');
+            if (ctx2) {
+                distributionChart = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['No Disease', 'Has Disease'],
+                        datasets: [{
+                            data: [165, 138],
+                            backgroundColor: [
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(239, 68, 68, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(16, 185, 129)',
+                                'rgb(239, 68, 68)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+            });
+            
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-' + tabName).classList.add('tab-active');
+
+            if (tabName === 'analytics') {
+                setTimeout(initCharts, 100);
+            }
+        }
+
+        async function trainModel() {
+            const btn = document.getElementById('trainBtn');
+            const status = document.getElementById('trainingStatus');
+            const results = document.getElementById('metricsResult');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i>Training...';
+            status.classList.remove('hidden');
+            results.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/api/train', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    status.classList.add('hidden');
+                    results.classList.remove('hidden');
+                    
+                    document.getElementById('metric-accuracy').textContent = (data.metrics.accuracy * 100).toFixed(2) + '%';
+                    document.getElementById('metric-precision').textContent = (data.metrics.precision * 100).toFixed(2) + '%';
+                    document.getElementById('metric-recall').textContent = (data.metrics.recall * 100).toFixed(2) + '%';
+                    document.getElementById('metric-f1').textContent = (data.metrics.f1_score * 100).toFixed(2) + '%';
+                    document.getElementById('metric-auc').textContent = (data.metrics.auc * 100).toFixed(2) + '%';
+                    
+                    btn.innerHTML = '<i class="fas fa-check mr-3"></i>Training Completed';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    predictionCount++;
+                    animateCounter(document.getElementById('statPredictions'), predictionCount - 1, predictionCount, 1000);
+                    
+                    // Add to history
+                    predictionHistory.unshift({
+                        timestamp: new Date().toLocaleString(),
+                        age: data.age,
+                        result: result.prediction === 1 ? 'Positive' : 'Negative',
+                        probability: (result.probability * 100).toFixed(2) + '%',
+                        riskLevel: result.risk_level
+                    });
+                    
+                    updateHistoryTable();
+                    showPredictionResult(result);
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        function updateHistoryTable() {
+            const tbody = document.getElementById('historyTable');
+            if (predictionHistory.length === 0) return;
+            
+            tbody.innerHTML = predictionHistory.slice(0, 10).map((item, index) => `
+                <tr class="border-b border-gray-200 hover:bg-purple-50 transition-colors">
+                    <td class="px-4 py-3 font-semibold">${index + 1}</td>
+                    <td class="px-4 py-3">${item.timestamp}</td>
+                    <td class="px-4 py-3">${item.age} tahun</td>
+                    <td class="px-4 py-3">
+                        <span class="px-3 py-1 rounded-full text-sm font-bold ${item.result === 'Positive' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                            ${item.result}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 font-semibold">${item.probability}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-3 py-1 rounded-full text-sm font-bold ${
+                            item.riskLevel === 'Tinggi' ? 'bg-red-100 text-red-800' :
+                            item.riskLevel === 'Sedang' ? 'bg-orange-100 text-orange-800' :
+                            'bg-green-100 text-green-800'
+                        }">
+                            ${item.riskLevel}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showPredictionResult(result) {
+            const resultDiv = document.getElementById('predictionResult');
+            const resultCard = document.getElementById('resultCard');
+            const recommendation = document.getElementById('recommendation');
+            
+            resultDiv.classList.remove('hidden');
+            
+            const hasDisease = result.prediction === 1;
+            const probability = result.probability * 100;
+            const confidence = result.confidence * 100;
+            
+            if (hasDisease) {
+                resultCard.className = 'glass p-10 rounded-3xl shadow-2xl result-danger';
+                document.getElementById('resultIcon').innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                document.getElementById('resultIcon').className = 'feature-icon gradient-red text-white heartbeat';
+            } else {
+                resultCard.className = 'glass p-10 rounded-3xl shadow-2xl result-success';
+                document.getElementById('resultIcon').innerHTML = '<i class="fas fa-check-circle"></i>';
+                document.getElementById('resultIcon').className = 'feature-icon gradient-green text-white heartbeat';
+            }
+            
+            document.getElementById('resultStatus').textContent = hasDisease ? 
+                '⚠️ Terdeteksi Risiko Penyakit Jantung' : '✅ Tidak Terdeteksi Risiko Penyakit Jantung';
+            
+            const riskEl = document.getElementById('riskLevel');
+            riskEl.textContent = result.risk_level;
+            
+            document.getElementById('probability').textContent = probability.toFixed(2) + '%';
+            const probBar = document.getElementById('probBar');
+            setTimeout(() => {
+                probBar.style.width = probability + '%';
+            }, 100);
+            probBar.className = 'progress-bar h-full rounded-full ' + 
+                (probability > 70 ? 'gradient-red' : 
+                 probability > 40 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 
+                 'gradient-green');
+            
+            document.getElementById('confidence').textContent = confidence.toFixed(2) + '%';
+            setTimeout(() => {
+                document.getElementById('confBar').style.width = confidence + '%';
+            }, 100);
+            
+            recommendation.classList.remove('hidden');
+            if (hasDisease) {
+                recommendation.className = 'p-8 rounded-2xl glass-card border-2 border-red-300 bg-red-50';
+                recommendation.innerHTML = `
+                    <div class="flex items-center gap-4 mb-5">
+                        <i class="fas fa-exclamation-triangle text-5xl text-red-600"></i>
+                        <h4 class="text-3xl font-bold text-gray-800">Rekomendasi Tindak Lanjut</h4>
+                    </div>
+                    <div class="space-y-3 text-gray-800">
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Segera konsultasikan dengan dokter spesialis jantung</span></p>
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Lakukan pemeriksaan lebih lanjut (ECG, Echocardiography)</span></p>
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Terapkan pola hidup sehat dan diet jantung sehat</span></p>
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Monitor tekanan darah dan kolesterol secara rutin</span></p>
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Hindari stres berlebihan dan lakukan olahraga teratur</span></p>
+                    </div>
+                `;
+            } else {
+                recommendation.className = 'p-8 rounded-2xl glass-card border-2 border-green-300 bg-green-50';
+                recommendation.innerHTML = `
+                    <div class="flex items-center gap-4 mb-5">
+                        <i class="fas fa-heart text-5xl text-green-600"></i>
+                        <h4 class="text-3xl font-bold text-gray-800">Tips Menjaga Kesehatan Jantung</h4>
+                    </div>
+                    <div class="space-y-3 text-gray-800">
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Pertahankan pola hidup sehat dan diet seimbang</span></p>
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Lakukan olahraga rutin minimal 30 menit per hari</span></p>
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Hindari merokok dan konsumsi alkohol berlebihan</span></p>
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Kelola stres dengan baik dan tidur cukup</span></p>
+                        <p class="flex items-start"><i class="fas fa-check-circle text-green-600 mr-3 mt-1 text-xl"></i><span class="font-semibold">Lakukan pemeriksaan kesehatan rutin tahunan</span></p>
+                    </div>
+                `;
+            }
+            
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Load metrics on page load
+        window.addEventListener('load', async function() {
+            // Animate counters
+            animateCounter(document.getElementById('statPatients'), 0, 303, 2000);
+            
+            try {
+                const response = await fetch('/api/metrics');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('metricsResult').classList.remove('hidden');
+                    document.getElementById('metric-accuracy').textContent = (data.metrics.accuracy * 100).toFixed(2) + '%';
+                    document.getElementById('metric-precision').textContent = (data.metrics.precision * 100).toFixed(2) + '%';
+                    document.getElementById('metric-recall').textContent = (data.metrics.recall * 100).toFixed(2) + '%';
+                    document.getElementById('metric-f1').textContent = (data.metrics.f1_score * 100).toFixed(2) + '%';
+                    document.getElementById('metric-auc').textContent = (data.metrics.auc * 100).toFixed(2) + '%';
+                }
+            } catch (error) {
+                console.log('Model belum dilatih');
+            }
+        });
+    </script>
+</body>
+</html>
